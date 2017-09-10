@@ -1,0 +1,15 @@
+{
+  "target": [
+    {
+      "Scheme": "https",
+      "Host"  : "127.0.0.1:8080"
+    },
+    {
+      "Scheme": "https",
+      "Host"  : "192.168.1.110:80"
+    }
+  ],
+  "Port" : ":3000",
+  "verbose" : true,
+  "ssl"  : true
+}
