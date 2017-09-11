@@ -23,3 +23,9 @@ port：您的proxy server 端口
 verbose： 是否允许 backend server 不同的协议 https/http true：只能使用backend server 只能使用 https 或 http协议， false 可以使用 http + https 协议
 
 SSL：proxy server 是否使用 https协议  true： --> https， false： ---> http
+
+
+
+# 2017年9月11日测试
+
+haproxy < anlGoLB < nginx 1.12.0
