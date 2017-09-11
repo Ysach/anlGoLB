@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"log"
 	"net"
 	"math/rand"
 	"net/http"
@@ -15,14 +14,6 @@ import (
 	"github.com/gorilla/websocket"
 	"io"
 	"strings"
-)
-
-var (
-	DefaultUpgrader = &websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-	DefaultDialer = websocket.DefaultDialer
 )
 
 type websocketProxy struct {
@@ -53,15 +44,17 @@ func ProxyStart() {
 	//reverse := NewMultipleHostsReverseProxy(proxy)
 	server := &http.Server{
 		Addr:                proxy.Port,
-		Handler:        proxy,
+		Handler:             proxy,
 	}
 	//http.ListenAndServe(":3000", proxy.NewMultipleHostsReverseProxy())
 	if proxy.SSL == true {
-		err := server.ListenAndServeTLS("./keys/cert.pem", "./keys/key.pem")
+		log.Println("Starting proxy server -- " + proxy.Port)
+		err := server.ListenAndServeTLS("keys/cert.pem", "keys/key.pem")
 		if err != nil {
 			log.Fatal(err)
 		}
 	}else if proxy.SSL == false {
+		log.Println("Starting proxy server -- " + proxy.Port)
 		err := server.ListenAndServe()
 		if err != nil {
 			log.Fatal(err)
@@ -73,8 +66,6 @@ func ProxyStart() {
 }
 
 func (np *NewProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//fmt.Println(r.Method)
-	//fmt.Println(r.Header.Get("Connection"))
 	target := np.Target[rand.Int() % len(np.Target)]
 	if r.Header.Get("Connection") == "Upgrade" || r.Header.Get("Connection") == "upgrade" {
 		np.WebSocketUrl.Scheme = target.Scheme
@@ -102,7 +93,7 @@ func (np *NewProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 
-//获取配置信息
+// get configure info
 func (np *NewProxy) GetProxy() {
 	file, errs := os.Open("./config.json")
 	defer file.Close()
@@ -116,11 +107,11 @@ func (np *NewProxy) GetProxy() {
 		log.Fatal("error:", err)
 		return
 	}
-	get_scheme(np.Target, np.Verbose)
-	fmt.Println(np)
+	get_scheme(np.Target, np.Verbose) // check configure file and get the proxy server scheme
 	return
 }
 
+// get scheme info
 func get_scheme(uRl []*url.URL, verbose bool) {
 	scheme_len := len(uRl)
 	if scheme_len == 0 {
@@ -143,6 +134,7 @@ func get_scheme(uRl []*url.URL, verbose bool) {
 
 }
 
+// check scheme
 func check_scheme(scheme string, uRl []*url.URL)  bool{
 	for _, v := range uRl {
 		if scheme != v.Scheme {
@@ -162,7 +154,7 @@ func (np *NewProxy) webSocketProxy(w http.ResponseWriter, r *http.Request, wp we
 
 	dialer := np.Dialer
 	if np.Dialer == nil {
-		dialer = DefaultDialer
+		dialer = websocket.DefaultDialer
 	}
 
 	// header 信息
@@ -207,7 +199,10 @@ func (np *NewProxy) webSocketProxy(w http.ResponseWriter, r *http.Request, wp we
 
 	upgrader := np.Upgrader
 	if np.Upgrader == nil {
-		upgrader = DefaultUpgrader
+		upgrader = &websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		}
 	}
 
 	// Only pass those headers to the upgrader.
